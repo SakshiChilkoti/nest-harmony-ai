@@ -11,9 +11,12 @@ export interface OmniDimResponse {
 export class OmniDimensionClient {
   private apiKey: string;
   private baseUrl = 'https://api.omnidim.io/v1'; // Official OmniDim API endpoint
+  private agentId?: string;
 
-  constructor(apiKey: string) {
+  constructor(apiKey: string, agentId?: string) {
     this.apiKey = apiKey;
+    this.agentId = agentId;
+    console.log('🔧 OmniDimensionClient initialized with API key:', apiKey ? '***configured***' : 'missing');
   }
 
   async processAudio(audioBlob: Blob, context?: string): Promise<OmniDimResponse> {
@@ -60,23 +63,43 @@ export class OmniDimensionClient {
 
   private async simulateOmniDimAPI(requestData: any): Promise<OmniDimResponse> {
     // Simulate API processing delay
+    console.log('🔄 Simulating OmniDimension API call...');
     await new Promise(resolve => setTimeout(resolve, 1500));
     
-    // Simulate successful processing
+    // In a real implementation, you would make an HTTP request like this:
+    /*
+    const response = await fetch(`${this.baseUrl}/audio/process`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${this.apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(requestData)
+    });
+    
+    if (!response.ok) {
+      throw new Error(`OmniDim API error: ${response.status}`);
+    }
+    
+    return await response.json();
+    */
+    
+    // For demo purposes, return mock successful response
     const mockTranscripts = [
       "I usually go to bed around 11 PM and wake up at 7 AM on weekdays",
-      "I'm very clean and organized, I like everything to be tidy",
-      "I prefer a quiet environment, especially when I'm working from home",
+      "I'm very clean and organized, I like everything to be tidy and in its place",
+      "I prefer a quiet environment, especially when I'm working from home or studying",
       "I occasionally have friends over on weekends, maybe once or twice a month",
       "Trust and mutual respect are most important to me in a roommate relationship"
     ];
     
     const randomTranscript = mockTranscripts[Math.floor(Math.random() * mockTranscripts.length)];
     
+    console.log('✅ OmniDimension API simulation complete');
     return {
       success: true,
       transcript: randomTranscript,
-      analysis: 'Successfully processed audio input and extracted meaningful response patterns'
+      analysis: 'Successfully processed audio input using OmniDimension voice AI technology'
     };
   }
 

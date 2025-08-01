@@ -71,6 +71,18 @@ const VoiceSurvey = ({ onComplete }: { onComplete: (responses: SurveyResponse[])
     checkMicrophonePermissions();
     initializeSpeechRecognition();
     
+    // Load saved OmniDim configuration from localStorage
+    const savedConfig = localStorage.getItem('omnidim-config');
+    if (savedConfig) {
+      try {
+        const config = JSON.parse(savedConfig);
+        setOmniDimConfig(config);
+        console.log('✅ Loaded saved OmniDimension configuration');
+      } catch (error) {
+        console.error('❌ Failed to load saved configuration:', error);
+      }
+    }
+    
     return () => {
       cleanup();
     };
@@ -246,7 +258,7 @@ const VoiceSurvey = ({ onComplete }: { onComplete: (responses: SurveyResponse[])
         return;
       }
 
-      const client = new OmniDimensionClient(omniDimConfig.apiKey);
+      const client = new OmniDimensionClient(omniDimConfig.apiKey, omniDimConfig.agentId);
       
       // Test connection first
       const isConnected = await client.testConnection();
@@ -389,22 +401,54 @@ const VoiceSurvey = ({ onComplete }: { onComplete: (responses: SurveyResponse[])
           
           {showConfig && (
             <div className="mt-4 p-4 bg-muted rounded-lg text-left">
-              <h3 className="font-medium mb-2">OmniDimension Configuration</h3>
-              <div className="space-y-2">
-                <Input
-                  placeholder="Enter your OmniDim API Key"
-                  value={omniDimConfig.apiKey}
-                  onChange={(e) => setOmniDimConfig({...omniDimConfig, apiKey: e.target.value})}
-                  type="password"
-                />
-                <Input
-                  placeholder="Agent ID (optional)"
-                  value={omniDimConfig.agentId || ''}
-                  onChange={(e) => setOmniDimConfig({...omniDimConfig, agentId: e.target.value})}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Get your API key from the OmniDimension Dashboard
-                </p>
+              <h3 className="font-medium mb-2">🔑 OmniDimension Configuration</h3>
+              <div className="space-y-3">
+                <div>
+                  <Input
+                    placeholder="Enter your OmniDim API Key"
+                    value={omniDimConfig.apiKey}
+                    onChange={(e) => {
+                      const newConfig = {...omniDimConfig, apiKey: e.target.value};
+                      setOmniDimConfig(newConfig);
+                      // Save to localStorage for persistence
+                      localStorage.setItem('omnidim-config', JSON.stringify(newConfig));
+                    }}
+                    type="password"
+                  />
+                </div>
+                <div>
+                  <Input
+                    placeholder="Agent ID (optional)"
+                    value={omniDimConfig.agentId || ''}
+                    onChange={(e) => {
+                      const newConfig = {...omniDimConfig, agentId: e.target.value};
+                      setOmniDimConfig(newConfig);
+                      localStorage.setItem('omnidim-config', JSON.stringify(newConfig));
+                    }}
+                  />
+                </div>
+                <div className="text-xs text-muted-foreground space-y-1">
+                  <p>🔗 Get your API key from the <a href="https://www.omnidim.io/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">OmniDimension Dashboard</a></p>
+                  <p>🔒 API key is stored locally in your browser</p>
+                  <p>⚠️ For production apps, use Supabase for secure storage</p>
+                </div>
+                {omniDimConfig.apiKey && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={async () => {
+                      const client = new OmniDimensionClient(omniDimConfig.apiKey);
+                      const isConnected = await client.testConnection();
+                      toast({
+                        title: isConnected ? "Connection successful!" : "Connection failed",
+                        description: isConnected ? "OmniDimension API is ready" : "Please check your API key",
+                        variant: isConnected ? "default" : "destructive",
+                      });
+                    }}
+                  >
+                    Test Connection
+                  </Button>
+                )}
               </div>
             </div>
           )}
